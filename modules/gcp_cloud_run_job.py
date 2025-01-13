@@ -75,7 +75,7 @@ def deploy_cloud_run_job_with_secrets(config: dict, source_dir: str, kafka_detai
         location=config["region"],
         github=cloudbuild.TriggerGithubArgs(
             owner="dwessendorf",
-            name="dwessendorf-trading",
+            name="trading",
             push=cloudbuild.TriggerGithubPushArgs(branch="^main$")
         )
     )
