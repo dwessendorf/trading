@@ -1,0 +1,7 @@
+faker
+google-cloud
+google
+pyyaml
+functions-framework
+confluent-kafka
+google-cloud-secret-manager

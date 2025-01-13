@@ -1,0 +1,8 @@
+functions-framework
+confluent-kafka
+google-cloud-aiplatform
+google-cloud-secret-manager
+google-cloud
+google
+pyyaml
+requests
