@@ -45,7 +45,7 @@ class MarketDataConsumer:
         self.bootstrap_server = os.getenv("KAFKA_BOOTSTRAP_SERVER")
         self.kafka_secret_name = os.getenv("KAFKA_SECRET_NAME")
         self.kafka_api_key_id = os.getenv("KAFKA_API_KEY_ID")
-        self.alpaca_key_secret_name = os.getenv("ALPACA_API_KEY_SECRET_NAME")
+        self.alpaca_key_secret_name = os.getenv("ALPACA_KEY_SECRET_NAME")
         self.alpaca_secret_secret_name = os.getenv("ALPACA_API_SECRET_SECRET_NAME")
         self.symbols = os.getenv("SYMBOLS", "AAPL,MSFT,GOOGL").split(",")
         self.reconnect_delay = int(os.getenv("RECONNECT_DELAY_SECONDS", "5"))
