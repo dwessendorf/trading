@@ -1,4 +1,4 @@
 websockets
 confluent-kafka
 google-auth
-google-cloud-secretmanager
+google-cloud-secret-manager
