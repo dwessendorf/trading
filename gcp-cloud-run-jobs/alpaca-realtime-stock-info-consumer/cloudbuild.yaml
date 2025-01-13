@@ -10,10 +10,12 @@ steps:
         pip3 install -r requirements.txt  
   - name: 'gcr.io/cloud-builders/docker'
     args:
-      - 'build'
+      - build
+      - '-f'
+      - 'gcp-cloud-run-jobs/alpaca-realtime-stock-info-consumer/Dockerfile'         # <-- path to Dockerfile
       - '-t'
       - 'gcr.io/$PROJECT_ID/market-stream-consumer'
-      - '.'
+      - 'alpaca-realtime-stock-info-consumer'         
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
