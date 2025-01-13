@@ -74,6 +74,7 @@ def deploy_cloud_run_job_with_secrets(config: dict, source_dir: str, kafka_detai
         filename="gcp-cloud-run-jobs/alpaca-realtime-stock-info-consumer/cloudbuild.yaml",
         location=config["region"],
         github=cloudbuild.TriggerGithubArgs(
+            owner="dwessendorf",
             name="dwessendorf-trading",
             push=cloudbuild.TriggerGithubPushArgs(branch="^main$")
         )
