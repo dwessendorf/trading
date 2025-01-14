@@ -139,11 +139,11 @@ class MarketDataConsumer:
         # Subscribe to trades, quotes, and bars for each symbol
         # (No more "@stock_stream.on_trades(...)" decorators)
         # -------------------------------------------------------------------
-
-        for symbol in self.symbols:
-            self.stock_stream.subscribe_trades(self.handle_trades, symbol)
-            self.stock_stream.subscribe_quotes(self.handle_quotes, symbol)
-            self.stock_stream.subscribe_bars(self.handle_bars, symbol)
+        self.stock_stream.subscribe_trades(self.handle_trades, "AAPL")
+        # for symbol in self.symbols:
+        #     self.stock_stream.subscribe_trades(self.handle_trades, symbol)
+        #     self.stock_stream.subscribe_quotes(self.handle_quotes, symbol)
+        #     self.stock_stream.subscribe_bars(self.handle_bars, symbol)
 
     async def handle_trades(self, trades):
         """Asynchronous callback for real-time trades."""
