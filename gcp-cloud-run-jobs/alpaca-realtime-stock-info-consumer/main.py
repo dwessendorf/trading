@@ -20,6 +20,7 @@ logging.basicConfig(
 logger = logging.getLogger("market-stream-consumer")
 
 class GracefulKiller:
+    """Handle graceful shutdown on SIGINT or SIGTERM."""
     def __init__(self):
         self.kill_now = False
         signal.signal(signal.SIGINT, self.exit_gracefully)
@@ -81,7 +82,7 @@ class MarketDataConsumer:
         logger.info("Kafka producer created successfully.")
 
     async def setup_alpaca_stream(self):
-        """Create and initialize the StockDataStream."""
+        """Create and initialize the StockDataStream and subscribe to data."""
         logger.info("Setting up Alpaca StockDataStream...")
 
         alpaca_api_key = self.fetch_secret(self.alpaca_key_secret_name)
@@ -99,17 +100,23 @@ class MarketDataConsumer:
             raw_data=False
         )
 
-        # Subscribe to data streams
+        # Subscribe to data streams for each symbol
         for symbol in self.symbols:
             logger.info(f"Subscribing to data for {symbol}")
             self.stock_stream.subscribe_trades(self.handle_trades, symbol)
+            # For quotes, the callback receives tuples: (symbol, quote_object)
             self.stock_stream.subscribe_quotes(self.handle_quotes, symbol)
             self.stock_stream.subscribe_bars(self.handle_bars, symbol)
 
     async def handle_trades(self, trades):
         try:
+            # Depending on your alpaca-py version, trades might already be objects;
+            # if needed, add unpacking similar to quotes.
             for trade in trades:
-                trade_dict = trade.dict()
+                # If trade is a tuple, uncomment the following line:
+                # _, trade_obj = trade
+                trade_obj = trade  # or replace with unpacking if necessary
+                trade_dict = trade_obj.dict()
                 trade_dict["processed_timestamp"] = datetime.utcnow().isoformat()
                 
                 self.producer.produce(
@@ -130,8 +137,9 @@ class MarketDataConsumer:
 
     async def handle_quotes(self, quotes):
         try:
-            for quote in quotes:
-                quote_dict = quote.dict()
+            # For quotes, each item is a tuple: (symbol, quote_object)
+            for symbol, quote_obj in quotes:
+                quote_dict = quote_obj.dict()
                 quote_dict["processed_timestamp"] = datetime.utcnow().isoformat()
 
                 self.producer.produce(
@@ -152,8 +160,10 @@ class MarketDataConsumer:
 
     async def handle_bars(self, bars):
         try:
-            for bar in bars:
-                bar_dict = bar.dict()
+            # Depending on your version, bars may or may not be tuples.
+            # If they are tuples, unpack similarly to quotes.
+            for symbol, bar_obj in bars:
+                bar_dict = bar_obj.dict()
                 bar_dict["processed_timestamp"] = datetime.utcnow().isoformat()
 
                 self.producer.produce(
