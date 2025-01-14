@@ -7,10 +7,13 @@ import time
 from datetime import datetime
 from typing import List
 
+
 # Alpaca-py for market data streaming
 from alpaca.data.live.stock import StockDataStream
+from alpaca.data.enums import Feed
+
 # Confluent Kafka Producer
-from confluent_kafka import Producer
+# from confluent_kafka import Producer
 # GCP Secret Manager
 from google.cloud import secretmanager
 from google.auth import default
@@ -112,17 +115,20 @@ class MarketDataConsumer:
         """
         logger.info("Setting up Alpaca StockDataStream...")
 
-        # Fetch Alpaca credentials from GCP
-        alpaca_api_key = self.fetch_secret(self.alpaca_key_secret_name)
-        alpaca_api_secret = self.fetch_secret(self.alpaca_secret_secret_name)
+        # Instead of passing self.alpaca_feed as a string,
+        # choose the enum based on environment variable
+        from_str = self.alpaca_feed  # e.g. "iex" or "sip"
 
-        # Create StockDataStream
-        # feed="iex" (free) or feed="sip" (requires subscription).
+        if from_str.lower() == "sip":
+            feed_enum = Feed.SIP
+        else:
+            feed_enum = Feed.IEX
+
         self.stock_stream = StockDataStream(
             api_key=alpaca_api_key,
             secret_key=alpaca_api_secret,
-            feed=self.alpaca_feed,   # "iex" or "sip"
-            raw_data=False          # If you want raw JSON, set True
+            feed=feed_enum,  # <-- Must be an enum value
+            raw_data=False
         )
 
         # -------------------------------------------------------------------
