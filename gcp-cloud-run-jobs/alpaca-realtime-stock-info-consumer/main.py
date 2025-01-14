@@ -7,7 +7,6 @@ import time
 from datetime import datetime
 from typing import List
 
-
 # Alpaca-py for market data streaming
 from alpaca.data.live.stock import StockDataStream
 from alpaca.data.enums import DataFeed
@@ -67,15 +66,14 @@ class MarketDataConsumer:
         self.alpaca_key_secret_name = os.getenv("ALPACA_KEY_SECRET_NAME", "")
         self.alpaca_secret_secret_name = os.getenv("ALPACA_SECRET_SECRET_NAME", "")
 
-        # Symbols to subscribe to (trades, quotes, bars)
+        # Symbols to subscribe to
         self.symbols = os.getenv("SYMBOLS", "AAPL,MSFT,GOOGL").split(",")
 
         # Reconnection & health check intervals
         self.reconnect_delay = int(os.getenv("RECONNECT_DELAY_SECONDS", "5"))
         self.health_check_interval = int(os.getenv("HEALTH_CHECK_INTERVAL", "30"))
 
-        # Which feed to use (iex for free, sip for US full feed)
-        # e.g. export ALPACA_FEED="iex"
+        # Which feed to use (iex for free, sip for US full feed), default is "iex"
         self.alpaca_feed = os.getenv("ALPACA_FEED", "iex").lower()
 
     def fetch_secret(self, secret_name: str) -> str:
@@ -88,7 +86,6 @@ class MarketDataConsumer:
     def setup_kafka_producer(self):
         """Initialize Kafka producer with SASL credentials."""
         logger.info("Setting up Kafka producer...")
-
         kafka_api_key_secret = self.fetch_secret(self.kafka_secret_name)
 
         kafka_config = {
@@ -110,8 +107,8 @@ class MarketDataConsumer:
 
     def setup_alpaca_stream(self):
         """
-        Set up StockDataStream for real-time market data. 
-        We'll subscribe to trades, quotes, and bars for the given symbols.
+        Create the StockDataStream and subscribe to trades, quotes, bars 
+        for the given symbols.
         """
         logger.info("Setting up Alpaca StockDataStream...")
 
@@ -119,12 +116,8 @@ class MarketDataConsumer:
         alpaca_api_key = self.fetch_secret(self.alpaca_key_secret_name)
         alpaca_api_secret = self.fetch_secret(self.alpaca_secret_secret_name)
 
-
-        # Instead of passing self.alpaca_feed as a string,
-        # choose the enum based on environment variable
-        from_str = self.alpaca_feed  # e.g. "iex" or "sip"
-
-        if from_str.lower() == "sip":
+        # Convert "iex"/"sip" string to DataFeed enum
+        if self.alpaca_feed == "sip":
             feed_enum = DataFeed.SIP
         else:
             feed_enum = DataFeed.IEX
@@ -132,92 +125,95 @@ class MarketDataConsumer:
         self.stock_stream = StockDataStream(
             api_key=alpaca_api_key,
             secret_key=alpaca_api_secret,
-            feed=feed_enum,  # <-- Must be an enum value
+            feed=feed_enum,
             raw_data=False
         )
 
         # -------------------------------------------------------------------
-        #  Define callbacks for trades, quotes, bars, and subscribe to them
+        # Subscribe to trades, quotes, and bars for each symbol
+        # (No more "@stock_stream.on_trades(...)" decorators)
         # -------------------------------------------------------------------
 
-        @self.stock_stream.on_trades(*self.symbols)
-        async def on_trades(trades):
-            """Handle real-time trades for the subscribed symbols."""
-            try:
-                # `trades` is a list of Trade objects
-                for trade in trades:
-                    # Convert to dict and add processed timestamp
-                    trade_dict = trade.dict()
-                    trade_dict["processed_timestamp"] = datetime.utcnow().isoformat()
+        for symbol in self.symbols:
+            self.stock_stream.subscribe_trades(self.handle_trades, symbol)
+            self.stock_stream.subscribe_quotes(self.handle_quotes, symbol)
+            self.stock_stream.subscribe_bars(self.handle_bars, symbol)
 
-                    # Produce to Kafka
-                    self.producer.produce(
-                        self.kafka_topic,
-                        key=str(time.time()),
-                        value=json.dumps(trade_dict),
-                    )
-                self.producer.flush()
+    async def handle_trades(self, trades):
+        """Asynchronous callback for real-time trades."""
+        try:
+            for trade in trades:
+                trade_dict = trade.dict()
+                trade_dict["processed_timestamp"] = datetime.utcnow().isoformat()
+                
+                self.producer.produce(
+                    self.kafka_topic,
+                    key=str(time.time()),
+                    value=json.dumps(trade_dict),
+                )
+            self.producer.flush()
 
-                self.message_count += len(trades)
-                self.last_healthy_timestamp = time.time()
-                if self.message_count % 100 == 0:
-                    logger.info(f"Processed {self.message_count} trades.")
+            self.message_count += len(trades)
+            self.last_healthy_timestamp = time.time()
 
-            except Exception as e:
-                logger.error(f"Error processing trades: {e}")
+            if self.message_count % 100 == 0:
+                logger.info(f"Processed {self.message_count} trades.")
 
-        @self.stock_stream.on_quotes(*self.symbols)
-        async def on_quotes(quotes):
-            """Handle real-time quotes for the subscribed symbols."""
-            try:
-                for quote in quotes:
-                    quote_dict = quote.dict()
-                    quote_dict["processed_timestamp"] = datetime.utcnow().isoformat()
+        except Exception as e:
+            logger.error(f"Error processing trades: {e}")
 
-                    self.producer.produce(
-                        self.kafka_topic,
-                        key=str(time.time()),
-                        value=json.dumps(quote_dict),
-                    )
-                self.producer.flush()
+    async def handle_quotes(self, quotes):
+        """Asynchronous callback for real-time quotes."""
+        try:
+            for quote in quotes:
+                quote_dict = quote.dict()
+                quote_dict["processed_timestamp"] = datetime.utcnow().isoformat()
 
-                self.message_count += len(quotes)
-                self.last_healthy_timestamp = time.time()
-                if self.message_count % 100 == 0:
-                    logger.info(f"Processed {self.message_count} quotes.")
+                self.producer.produce(
+                    self.kafka_topic,
+                    key=str(time.time()),
+                    value=json.dumps(quote_dict),
+                )
+            self.producer.flush()
 
-            except Exception as e:
-                logger.error(f"Error processing quotes: {e}")
+            self.message_count += len(quotes)
+            self.last_healthy_timestamp = time.time()
 
-        @self.stock_stream.on_bars(*self.symbols)
-        async def on_bars(bars):
-            """Handle real-time bars for the subscribed symbols."""
-            try:
-                for bar in bars:
-                    bar_dict = bar.dict()
-                    bar_dict["processed_timestamp"] = datetime.utcnow().isoformat()
+            if self.message_count % 100 == 0:
+                logger.info(f"Processed {self.message_count} quotes.")
 
-                    self.producer.produce(
-                        self.kafka_topic,
-                        key=str(time.time()),
-                        value=json.dumps(bar_dict),
-                    )
-                self.producer.flush()
+        except Exception as e:
+            logger.error(f"Error processing quotes: {e}")
 
-                self.message_count += len(bars)
-                self.last_healthy_timestamp = time.time()
-                if self.message_count % 100 == 0:
-                    logger.info(f"Processed {self.message_count} bars.")
+    async def handle_bars(self, bars):
+        """Asynchronous callback for real-time bars."""
+        try:
+            for bar in bars:
+                bar_dict = bar.dict()
+                bar_dict["processed_timestamp"] = datetime.utcnow().isoformat()
 
-            except Exception as e:
-                logger.error(f"Error processing bars: {e}")
+                self.producer.produce(
+                    self.kafka_topic,
+                    key=str(time.time()),
+                    value=json.dumps(bar_dict),
+                )
+            self.producer.flush()
+
+            self.message_count += len(bars)
+            self.last_healthy_timestamp = time.time()
+
+            if self.message_count % 100 == 0:
+                logger.info(f"Processed {self.message_count} bars.")
+
+        except Exception as e:
+            logger.error(f"Error processing bars: {e}")
 
     async def health_check(self):
         """Periodic health check. Warn if no messages have arrived recently."""
         while not self.killer.kill_now:
             await asyncio.sleep(self.health_check_interval)
-
             time_since_last_healthy = time.time() - self.last_healthy_timestamp
+
             if time_since_last_healthy > self.health_check_interval:
                 logger.warning(
                     f"No market data received in {int(time_since_last_healthy)} seconds."
