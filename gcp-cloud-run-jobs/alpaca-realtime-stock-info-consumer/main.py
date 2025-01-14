@@ -138,6 +138,8 @@ class MarketDataConsumer:
     async def handle_quotes(self, quotes):
         try:
             # For quotes, each item is a tuple: (symbol, quote_object)
+            logger.info(f"Processing {len(quotes)} quotes...")
+            logger.info(f"quotes: {quotes}")
             for symbol, quote_obj in quotes:
                 quote_dict = quote_obj.dict()
                 quote_dict["processed_timestamp"] = datetime.utcnow().isoformat()

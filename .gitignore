@@ -5,6 +5,7 @@ Pulumi.dev.yaml
 __pycache__/
 *.py[cod]
 *$py.class
+gcp-cloud-run-jobs/alpaca-realtime-stock-info-consumer/test-minimal.py
 
 # C extensions
 *.so
