@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import List
 
 # Alpaca-py for market data streaming
-from alpaca.data import StockDataStream
+from alpaca.data.live.stock import StockDataStream
 # Confluent Kafka Producer
 from confluent_kafka import Producer
 # GCP Secret Manager
