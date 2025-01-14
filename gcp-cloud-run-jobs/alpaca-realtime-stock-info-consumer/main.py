@@ -13,7 +13,7 @@ from alpaca.data.live.stock import StockDataStream
 from alpaca.data.enums import DataFeed
 
 # Confluent Kafka Producer
-# from confluent_kafka import Producer
+from confluent_kafka import Producer
 # GCP Secret Manager
 from google.cloud import secretmanager
 from google.auth import default
