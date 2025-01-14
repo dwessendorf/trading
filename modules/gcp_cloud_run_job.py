@@ -120,6 +120,10 @@ def deploy_cloud_run_job_with_secrets(config: dict, source_dir: str, kafka_detai
                             gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
                                 name="ALPACA_SECRET_SECRET_NAME",
                                 value=config["alpaca_secret_secret_name"]
+                            ),                    
+                            gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
+                                name="ALPACA_PAPER_TRADING",
+                                value=config["alpaca_paper_trading"]
                             ),
                             gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
                                 name="SYMBOLS",

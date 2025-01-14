@@ -39,6 +39,7 @@ cloud_run_job_config = {
     "alpaca_secret_secret_name": config.require("alpaca_secret_secret_name"),
     "alpaca_api_key": config.require("alpaca_api_key"),
     "alpaca_api_secret": config.require("alpaca_api_secret"),
+    "alpaca_paper_trading": config.require("alpaca_paper_trading"),
     "stock_symbols": config.require("stock_symbols"),
     "schedule": config.get("job_schedule") or "0 */4 * * *",  # Every 4 hours by default
     "cpu": config.get("job_cpu") or "1",
