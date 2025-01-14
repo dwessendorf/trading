@@ -4,4 +4,6 @@ pulumi-confluentcloud
 google-cloud-aiplatform
 google-cloud-secret-manager
 confluent-kafka
+google-auth
+alpaca-py
 PyYAML

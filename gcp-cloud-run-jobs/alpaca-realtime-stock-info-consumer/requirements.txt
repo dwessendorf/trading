@@ -2,3 +2,4 @@ websockets
 confluent-kafka
 google-auth
 google-cloud-secret-manager
+alpaca-py
