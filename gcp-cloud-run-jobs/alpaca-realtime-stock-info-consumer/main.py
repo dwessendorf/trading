@@ -122,6 +122,12 @@ class MarketDataConsumer:
         else:
             feed_enum = DataFeed.IEX
 
+        print(f"Using feed: {feed_enum}")
+        print(f"Symbols: {self.symbols}")
+        print(f"API Key: {alpaca_api_key}")
+        print(f"API Secret: {alpaca_api_secret}")
+        
+
         self.stock_stream = StockDataStream(
             api_key=alpaca_api_key,
             secret_key=alpaca_api_secret,
