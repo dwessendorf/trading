@@ -115,6 +115,11 @@ class MarketDataConsumer:
         """
         logger.info("Setting up Alpaca StockDataStream...")
 
+        # Get Alpaca credentials from secrets
+        alpaca_api_key = self.fetch_secret(self.alpaca_key_secret_name)
+        alpaca_api_secret = self.fetch_secret(self.alpaca_secret_secret_name)
+
+
         # Instead of passing self.alpaca_feed as a string,
         # choose the enum based on environment variable
         from_str = self.alpaca_feed  # e.g. "iex" or "sip"
