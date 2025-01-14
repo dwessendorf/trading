@@ -21,7 +21,7 @@ from google.auth import default
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)x
+)
 logger = logging.getLogger("market-stream-consumer")
 
 class GracefulKiller:
