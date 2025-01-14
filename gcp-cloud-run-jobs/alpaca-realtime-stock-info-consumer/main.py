@@ -10,7 +10,7 @@ from typing import List
 
 # Alpaca-py for market data streaming
 from alpaca.data.live.stock import StockDataStream
-from alpaca.data.enums import Feed
+from alpaca.data.enums import DataFeed
 
 # Confluent Kafka Producer
 # from confluent_kafka import Producer
@@ -21,7 +21,7 @@ from google.auth import default
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
+)x
 logger = logging.getLogger("market-stream-consumer")
 
 class GracefulKiller:
@@ -120,9 +120,9 @@ class MarketDataConsumer:
         from_str = self.alpaca_feed  # e.g. "iex" or "sip"
 
         if from_str.lower() == "sip":
-            feed_enum = Feed.SIP
+            feed_enum = DataFeed.SIP
         else:
-            feed_enum = Feed.IEX
+            feed_enum = DataFeed.IEX
 
         self.stock_stream = StockDataStream(
             api_key=alpaca_api_key,
