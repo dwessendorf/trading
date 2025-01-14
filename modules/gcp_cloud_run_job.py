@@ -122,12 +122,20 @@ def deploy_cloud_run_job_with_secrets(config: dict, source_dir: str, kafka_detai
                                 value=config["alpaca_secret_secret_name"]
                             ),                    
                             gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
-                                name="ALPACA_PAPER_TRADING",
-                                value=config["alpaca_paper_trading"]
+                                name="ALPACA_FEED",
+                                value=config["alpaca_feed"]
                             ),
                             gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
                                 name="SYMBOLS",
                                 value=config["stock_symbols"]
+                            ),
+                            gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
+                                name="RECONNECT_DELAY_SECONDS",
+                                value=config["reconnect_delay_seconds"]
+                            ),
+                            gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
+                                name="HEALTH_CHECK_INTERVAL",
+                                value=config["health_check_interval"]
                             ),
                         ],
                     )

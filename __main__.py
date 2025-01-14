@@ -39,13 +39,15 @@ cloud_run_job_config = {
     "alpaca_secret_secret_name": config.require("alpaca_secret_secret_name"),
     "alpaca_api_key": config.require("alpaca_api_key"),
     "alpaca_api_secret": config.require("alpaca_api_secret"),
-    "alpaca_paper_trading": config.require("alpaca_paper_trading"),
     "stock_symbols": config.require("stock_symbols"),
     "schedule": config.get("job_schedule") or "0 */4 * * *",  # Every 4 hours by default
     "cpu": config.get("job_cpu") or "1",
     "memory": config.get("job_memory") or "2Gi",
     "timeout_seconds": config.get("job_timeout") or "86400",  # 24 hours by default
-    "max_retries": config.get("job_max_retries") or "3"
+    "max_retries": config.get("job_max_retries") or "3",
+    "reconnect_delay_seconds": config.get("reconnect_delay_seconds") or "5",
+    "health_check_interval": config.get("health_check_interval") or "30",
+    "alpaca_feed": config.get("alpaca_feed") or "idx"
 }
 
 deploy_cloud_run_job_with_secrets(
