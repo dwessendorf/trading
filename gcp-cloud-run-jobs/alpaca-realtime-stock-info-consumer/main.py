@@ -122,10 +122,10 @@ class MarketDataConsumer:
         else:
             feed_enum = DataFeed.IEX
 
-        print(f"Using feed: {feed_enum}")
-        print(f"Symbols: {self.symbols}")
-        print(f"API Key: {alpaca_api_key}")
-        print(f"API Secret: {alpaca_api_secret}")
+        logger.info(f"Using feed: {feed_enum}")
+        logger.info(f"Symbols: {self.symbols}")
+        logger.info(f"API Key: {alpaca_api_key}")
+        logger.info(f"API Secret: {alpaca_api_secret}")
         
 
         self.stock_stream = StockDataStream(
@@ -134,12 +134,17 @@ class MarketDataConsumer:
             feed=feed_enum,
             raw_data=False
         )
+        
+        logger.info(self.stock_stream._raw_data)
 
         # -------------------------------------------------------------------
         # Subscribe to trades, quotes, and bars for each symbol
         # (No more "@stock_stream.on_trades(...)" decorators)
         # -------------------------------------------------------------------
+        
+        logger.info("Subscribing to trades for AAPL")
         self.stock_stream.subscribe_trades(self.handle_trades, "AAPL")
+        logger.info("Subscribed to trades for AAPL")
         # for symbol in self.symbols:
         #     self.stock_stream.subscribe_trades(self.handle_trades, symbol)
         #     self.stock_stream.subscribe_quotes(self.handle_quotes, symbol)
@@ -237,10 +242,13 @@ class MarketDataConsumer:
             logger.info("Starting Alpaca market data stream...")
 
             # Launch a background health checker
+            logger.info("Starting health check task...")
             health_task = asyncio.create_task(self.health_check())
 
             # This call blocks until we stop the stream or an error occurs
+            logger.info("Running market data stream...")
             await self.stock_stream.run()
+            logger.info("Market data stream stopped.")
 
             # Cancel the health check when done
             health_task.cancel()
@@ -254,10 +262,14 @@ class MarketDataConsumer:
 
     async def run(self):
         """Main entry point to set up Kafka, set up the stream, and run forever."""
+        logger.info(f"Entering run method")
+        logger.info(f"Starting Kafka Setup")
         self.setup_kafka_producer()
+        logger.info(f"Starting Alpaca Setup")
         self.setup_alpaca_stream()
 
         try:
+            logger.info(f"Starting run market data stream")
             await self.run_market_data_stream()
         finally:
             if self.producer:
