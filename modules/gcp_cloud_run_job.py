@@ -137,6 +137,10 @@ def deploy_cloud_run_job_with_secrets(config: dict, source_dir: str, kafka_detai
                                 name="HEALTH_CHECK_INTERVAL",
                                 value=config["health_check_interval"]
                             ),
+                            gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
+                                name="ALPACA_WEBSOCKET_OVERRIDE_URL",
+                                value=config["alpaca_websocket_override_url"]
+                            ),
                         ],
                     )
                 ],

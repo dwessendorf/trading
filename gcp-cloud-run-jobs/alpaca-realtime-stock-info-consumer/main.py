@@ -54,6 +54,7 @@ class MarketDataConsumer:
         self.reconnect_delay = int(os.getenv("RECONNECT_DELAY_SECONDS", "5"))
         self.health_check_interval = int(os.getenv("HEALTH_CHECK_INTERVAL", "30"))
         self.alpaca_feed = os.getenv("ALPACA_FEED", "iex").lower()
+        self.alpaca_websocket_override_url = os.getenv("ALPACA_WEBSOCKET_OVERRIDE_URL", "")
 
     def fetch_secret(self, secret_name: str) -> str:
         client = secretmanager.SecretManagerServiceClient()
@@ -92,21 +93,29 @@ class MarketDataConsumer:
 
         logger.info(f"Using feed: {feed_enum}")
         logger.info(f"Symbols: {self.symbols}")
-
-        self.stock_stream = StockDataStream(
-            api_key=alpaca_api_key,
-            secret_key=alpaca_api_secret,
-            feed=feed_enum,
-            raw_data=False
-        )
+        if self.alpaca_websocket_override_url:
+            self.stock_stream = StockDataStream(
+                api_key=alpaca_api_key,
+                secret_key=alpaca_api_secret,
+                feed=feed_enum,
+                raw_data=False,
+                url_override=self.alpaca_websocket_override_url,
+            )
+        else:
+            self.stock_stream = StockDataStream(
+                api_key=alpaca_api_key,
+                secret_key=alpaca_api_secret,
+                feed=feed_enum,
+                raw_data=False
+            )
 
         # Subscribe to data streams for each symbol
         for symbol in self.symbols:
             logger.info(f"Subscribing to data for {symbol}")
             self.stock_stream.subscribe_trades(self.handle_trades, symbol)
             # For quotes, the callback receives tuples: (symbol, quote_object)
-            self.stock_stream.subscribe_quotes(self.handle_quotes, symbol)
-            self.stock_stream.subscribe_bars(self.handle_bars, symbol)
+            # self.stock_stream.subscribe_quotes(self.handle_quotes, symbol)
+            # self.stock_stream.subscribe_bars(self.handle_bars, symbol)
 
     async def handle_trades(self, trades):
         try:

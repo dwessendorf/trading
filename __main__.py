@@ -47,7 +47,8 @@ cloud_run_job_config = {
     "max_retries": config.get("job_max_retries") or "3",
     "reconnect_delay_seconds": config.get("reconnect_delay_seconds") or "5",
     "health_check_interval": config.get("health_check_interval") or "30",
-    "alpaca_feed": config.get("alpaca_feed") or "idx"
+    "alpaca_feed": config.get("alpaca_feed") or "idx",
+    "alpaca_websocket_override_url": config.get("alpaca_websocket_override_url") 
 }
 
 deploy_cloud_run_job_with_secrets(
