@@ -112,9 +112,9 @@ class MarketDataConsumer:
         # Subscribe to data streams for each symbol
         for symbol in self.symbols:
             logger.info(f"Subscribing to data for {symbol}")
-            self.stock_stream.subscribe_trades(self.handle_trades, symbol)
+            #self.stock_stream.subscribe_trades(self.handle_trades, symbol)
             # For quotes, the callback receives tuples: (symbol, quote_object)
-            # self.stock_stream.subscribe_quotes(self.handle_quotes, symbol)
+            self.stock_stream.subscribe_quotes(self.handle_quotes, symbol)
             # self.stock_stream.subscribe_bars(self.handle_bars, symbol)
 
     async def handle_trades(self, trades):
