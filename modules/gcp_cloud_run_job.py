@@ -147,8 +147,10 @@ def deploy_cloud_run_job_with_secrets(config: dict, source_dir: str, kafka_detai
                 max_retries=int(config["max_retries"]),
                 timeout=f"{config['timeout_seconds']}s",
                 service_account=service_account.email,
+
             )
         ),
+        deletion_protection=False,
     )
 
     # IAM Bindings (Vertex AI roles, Secret Manager, Logging)
